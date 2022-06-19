@@ -1,0 +1,27 @@
+{
+  "name": "wanted_pre_onboarding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StarFace90/wanted_pre_onboarding.git"
+  },
+  "author": "Astra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/StarFace90/wanted_pre_onboarding/issues"
+  },
+  "homepage": "https://github.com/StarFace90/wanted_pre_onboarding#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  }
+}
