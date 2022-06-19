@@ -1,4 +1,5 @@
 const db = require("../models");
+const { Op } = require("sequelize");
 const Recruit = db.recruit;
 
 /**
@@ -11,6 +12,24 @@ const Recruit = db.recruit;
  * * 채용공고 상세 페이지
  *
  */
+
+// 공고 검색
+
+const searchRecruit = async (req, res) => {
+  console.log("키워드", req.params.keyWord);
+
+  let searchWord = req.params.keyWord;
+
+  let searchRecruit = await Recruit.findAll({
+    where: {
+      [Op.or]: [
+        { tech: { [Op.like]: `%${searchWord}%` } },
+        { position: { [Op.like]: `%${searchWord}%` } },
+      ],
+    },
+  });
+  res.status(200).send(searchRecruit);
+};
 
 // 새로운 공고 추가
 const addRecruit = async (req, res) => {
@@ -35,11 +54,9 @@ const addRecruit = async (req, res) => {
     tech: req.body.tech,
   };
 
-  // 데이터베이스에 회사 생성
   try {
     const recruit = await Recruit.create(recruitInfo);
     res.status(200).send(recruit);
-    console.log(recruit);
   } catch (err) {
     res.status(500).send({
       message: err.message || "채용공고를 생성하는 과정에서 문제 발생!",
@@ -51,7 +68,6 @@ const addRecruit = async (req, res) => {
 const getAllRecruit = async (req, res) => {
   let recruit = await Recruit.findAll({});
   res.status(200).send(recruit);
-  console.log(recruit);
 };
 
 // 공고 하나만 보여주기
@@ -64,8 +80,8 @@ const getSingleRecruit = async (req, res) => {
 // 공고 내용 변경하기
 const updateRecruit = async (req, res) => {
   let id = req.params.id;
-  const recruit = await Recruit.update(req.body, { where: { id: id } });
-  res.status(200).send("Recruit is Updated", recruit);
+  await Recruit.update(req.body, { where: { id: id } });
+  res.status(200).send("Recruit is Updated");
 };
 
 // 공고 삭제
@@ -81,4 +97,5 @@ module.exports = {
   getSingleRecruit,
   updateRecruit,
   deleteRecruit,
+  searchRecruit,
 };

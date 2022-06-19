@@ -7,5 +7,6 @@ router.get("/allRecruit", recruitController.getAllRecruit);
 router.get("/:id", recruitController.getSingleRecruit);
 router.put("/:id", recruitController.updateRecruit);
 router.delete("/:id", recruitController.deleteRecruit);
+router.get("/search/:keyWord", recruitController.searchRecruit);
 
 module.exports = router;
