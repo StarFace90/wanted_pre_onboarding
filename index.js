@@ -3,8 +3,16 @@ const morgan = require("morgan");
 
 const app = express();
 app.use(morgan("dev"));
-
+app.use(express.json());
 const port = 4000;
+
+const company_router = require("./routes/company");
+const recruit_router = require("./routes/recruit");
+const user_router = require("./routes/user");
+
+app.use("/company", company_router);
+app.use("/user", user_router);
+app.use("/recruit", recruit_router);
 
 app.get("/", (req, res) => {
   res.status(200);
