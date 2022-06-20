@@ -14,8 +14,11 @@ sequelize
     console.log("정상적으로 DB와 연결 되었습니다.");
   })
   .catch((err) => {
-    console.error(err);
+    console.log("Unable to connect to the database:", err);
   });
+//   .finally(() => {
+//     sequelize.close();
+//   });
 
 const db = {};
 db.sequelize = Sequelize;
@@ -27,12 +30,21 @@ db.user = require("./user.js")(sequelize, DataTypes);
 
 // ?회사는 포지션 별로 공고를 여러번 등록할 수 있다.
 db.company.hasMany(db.recruit, {
-  foreignKey: "company_id",
-  sourceKey: "id",
+  foreignKey: {
+    name: "company_id",
+    sourceKey: "id",
+  },
 });
+// recruit 모델에 company_id 추가
 db.recruit.belongsTo(db.company, {
-  foreignKey: "company_id",
-  sourceKey: "id",
+  foreignKey: {
+    name: "company_id",
+    targetKey: "id",
+    onUpdate: "RESTRICT",
+    unique: "company_id",
+  },
+
+  //uniqueKey: "company_id",
 });
 
 // db.user.hasMany(db.recruit, {

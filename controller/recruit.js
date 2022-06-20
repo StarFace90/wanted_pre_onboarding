@@ -35,7 +35,6 @@ const searchRecruit = async (req, res) => {
 const addRecruit = async (req, res) => {
   console.log(req.body);
 
-  // validate request
   if (!req.body.title) {
     res.status(400).send({
       message: "Content can not be empty!",
@@ -79,9 +78,27 @@ const getSingleRecruit = async (req, res) => {
 
 // 공고 내용 변경하기
 const updateRecruit = async (req, res) => {
-  let id = req.params.id;
-  await Recruit.update(req.body, { where: { id: id } });
-  res.status(200).send("Recruit is Updated");
+  //? 회사id를 유니크화 => SequelizeUniqueConstraintError:
+  //?  company_id must be unique 문제 =>  서버 꺼짐 현상 발생
+  //! 조건문으로 해결 => 들어오는 요청과 기존 db에 저장된 요청을 비교
+
+  console.log("요청", req.params);
+
+  const preRecruit = await Recruit.findOne({ where: {} });
+  const companyId = preRecruit.dataValues.company_id;
+
+  // 변경하려는 요청이 회사의 id라면 막는다
+  if (req.body.company_id !== companyId) {
+    res.status(400).send("회사의 고유 id는 변경이 불가합니다.");
+  } else {
+    let id = req.params.id; //3
+    await Recruit.update(req.body, { where: { id: id } });
+    // try {
+    res.status(200).send("채용 공고가 업데이트 되었습니다");
+    // } catch (e) {
+    //   console.log("에러발생", e);
+    // }
+  }
 };
 
 // 공고 삭제
