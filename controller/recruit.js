@@ -82,22 +82,39 @@ const updateRecruit = async (req, res) => {
   //?  company_id must be unique 문제 =>  서버 꺼짐 현상 발생
   //! 조건문으로 해결 => 들어오는 요청과 기존 db에 저장된 요청을 비교
 
-  console.log("요청", req.params);
+  const test = await Recruit.findAll({ where: {} });
+  let arr = [];
+  test.forEach((c) => {
+    arr.push(c.dataValues.id);
+  });
+
+  let checkRecruitId = arr.includes(req.params.id);
 
   const preRecruit = await Recruit.findOne({ where: {} });
   const companyId = preRecruit.dataValues.company_id;
 
   // 변경하려는 요청이 회사의 id라면 막는다
   if (req.body.company_id !== companyId) {
-    res.status(400).send("회사의 고유 id는 변경이 불가합니다.");
+    return res
+      .status(400)
+      .send(
+        "<p>회사의 고유 id는 변경이 불가합니다.<br> 변경하려는 company_id를 확인하세요</p>"
+      );
   } else {
     let id = req.params.id; //3
     await Recruit.update(req.body, { where: { id: id } });
-    // try {
-    res.status(200).send("채용 공고가 업데이트 되었습니다");
-    // } catch (e) {
-    //   console.log("에러발생", e);
-    // }
+    try {
+      return res.status(201).send("<h3>채용 공고가 업데이트 되었습니다</h3>");
+    } catch (e) {
+      console.log("에러발생", e);
+    }
+  }
+  // 파라미터 요청을 없는 공고 id로 했을 경우
+  if (!checkRecruitId) {
+    return res.status(400).send(
+      `<p>요청한 공고 id는 현재 등록되지 않은 공고의 id입니다.<br>
+		요청한 param을 확인하세요</p>`
+    );
   }
 };
 
