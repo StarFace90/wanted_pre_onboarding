@@ -1,5 +1,6 @@
 const db = require("../models");
 const { Op } = require("sequelize");
+const { company } = require("../models");
 const Recruit = db.recruit;
 
 /**
@@ -14,6 +15,8 @@ const Recruit = db.recruit;
  */
 
 // 공고 검색
+
+// 채용 정보 : 공고_id, 회사명, 국가, 지역, 포지션, 보상금, 기술
 
 const searchRecruit = async (req, res) => {
   console.log("키워드", req.params.keyWord);
@@ -33,7 +36,16 @@ const searchRecruit = async (req, res) => {
 
 // 새로운 공고 추가
 const addRecruit = async (req, res) => {
-  console.log(req.body);
+  let recruitInfo = {
+    company_id: req.body.company_id,
+    title: req.body.title,
+    country: req.body.country,
+    region: req.body.region,
+    position: req.body.position,
+    description: req.body.description,
+    reward: req.body.reward,
+    tech: req.body.tech,
+  };
 
   if (!req.body.title) {
     res.status(400).send({
@@ -41,17 +53,6 @@ const addRecruit = async (req, res) => {
     });
     return;
   }
-
-  // 채용 정보 : 공고_id, 회사명, 국가, 지역, 포지션, 보상금, 기술
-  let recruitInfo = {
-    company_id: req.body.company_id,
-    title: req.body.title,
-    country: req.body.country,
-    region: req.body.region,
-    position: req.body.position,
-    reward: req.body.reward,
-    tech: req.body.tech,
-  };
 
   try {
     const recruit = await Recruit.create(recruitInfo);
@@ -64,8 +65,23 @@ const addRecruit = async (req, res) => {
 };
 
 // 모든 공고를 가져오기
+/**
+ * TODO: 상세페이지가 따로 있으므로 기존의 모든 공고가져오기는 특정 필드만 가져오도록 한다
+ *
+ */
+
 const getAllRecruit = async (req, res) => {
-  let recruit = await Recruit.findAll({});
+  let recruit = await Recruit.findAll({
+    attributes: [
+      "id",
+      "title",
+      "country",
+      "region",
+      "position",
+      "reward",
+      "tech",
+    ],
+  });
   res.status(200).send(recruit);
 };
 
@@ -93,7 +109,15 @@ const updateRecruit = async (req, res) => {
   const preRecruit = await Recruit.findOne({ where: {} });
   const companyId = preRecruit.dataValues.company_id;
 
+  console.log(req.params); // {id:'?'}
+  console.log(req.body.company_id); //4
+  console.log(companyId); //2
+
   // 변경하려는 요청이 회사의 id라면 막는다
+
+  // FIXME: 회사로 오는 요청만 막을 것
+  //    * 올바른 업데이트도 조건에서 막힘 => Recruit에서 company_id만 업데이트 안되도록 조건을 걸 것!
+
   if (req.body.company_id !== companyId) {
     return res
       .status(400)
@@ -125,6 +149,26 @@ const deleteRecruit = async (req, res) => {
   res.status(200).send("Recruit is deleted");
 };
 
+//상세페이지 보기
+
+const detailPage = async (req, res) => {
+  let id = req.params.id;
+  let recruit = await Recruit.findOne({
+    where: { id: id },
+    attributes: [
+      "id",
+      "title",
+      "country",
+      "region",
+      "position",
+      "reward",
+      "tech",
+      "description",
+    ],
+  });
+  res.status(200).send(recruit);
+};
+
 module.exports = {
   addRecruit,
   getAllRecruit,
@@ -132,4 +176,5 @@ module.exports = {
   updateRecruit,
   deleteRecruit,
   searchRecruit,
+  detailPage,
 };
