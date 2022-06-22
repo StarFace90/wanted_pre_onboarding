@@ -14,54 +14,48 @@ const Recruit = db.recruit;
  *
  */
 
-// 공고 검색
-
-// 채용 정보 : 공고_id, 회사명, 국가, 지역, 포지션, 보상금, 기술
-
-const searchRecruit = async (req, res) => {
-  console.log("키워드", req.params.keyWord);
-
-  let searchWord = req.params.keyWord;
-
-  let searchRecruit = await Recruit.findAll({
-    where: {
-      [Op.or]: [
-        { tech: { [Op.like]: `%${searchWord}%` } },
-        { position: { [Op.like]: `%${searchWord}%` } },
-      ],
-    },
-  });
-  res.status(200).send(searchRecruit);
-};
-
-// 새로운 공고 추가
+//* 새로운 공고 추가(등록)
 const addRecruit = async (req, res) => {
-  console.log("회사 id", req.body.company_id);
-  let recruitInfo = {
-    company_id: req.body.company_id,
-    title: req.body.title,
-    country: req.body.country,
-    region: req.body.region,
-    position: req.body.position,
-    description: req.body.description,
-    reward: req.body.reward,
-    tech: req.body.tech,
-  };
+  //? 채용공고의 정보 : 회사명, 국가, 지역, 위치, 포지션, 보상금, 내용, 기술
 
-  if (!req.body.title) {
-    res.status(400).send({
-      message: "Content can not be empty!",
-    });
-    return;
-  }
-
-  try {
-    const recruit = await Recruit.create(recruitInfo);
-    res.status(200).send(recruit);
-  } catch (err) {
-    res.status(500).send({
-      message: err.message || "채용공고를 생성하는 과정에서 문제 발생!",
-    });
+  // 채용공고 추가 할때, FK로 연결되어 있는 회사 DB의 company_id를 가져온다
+  let joinCompanyModel = await company.findOne({
+    where: { name: req.body.name },
+  });
+  let companyName = joinCompanyModel.dataValues.name;
+  let companyId = joinCompanyModel.dataValues.id;
+  //   let companyName, companyId;
+  //   for (let key in joinCompanyModel) {
+  //     companyName = joinCompanyModel[key].dataValues.name;
+  //     console.log([].companyName);
+  //     companyId = joinCompanyModel[key].dataValues.id;
+  //   }
+  //   console.log(companyName, req.body.name);
+  if (companyName !== req.body.name) {
+    res.status(400).send("회사의 이름 정보가 다릅니다.");
+  } else if (companyName === req.body.name) {
+    let recruitInfo = {
+      company_id: companyId,
+      name: companyName,
+      title: req.body.title,
+      country: req.body.country,
+      region: req.body.region,
+      location: req.body.location,
+      position: req.body.position,
+      description: req.body.description,
+      reward: req.body.reward,
+      tech: req.body.tech,
+    };
+    try {
+      const recruit = await Recruit.create(recruitInfo);
+      res.status(200).send(recruit);
+      // console.log(company);
+    } catch (err) {
+      res.status(500).send({
+        message:
+          err.message || "채용공고를 생성하는 과정에서 문제가 발생했습니다",
+      });
+    }
   }
 };
 
@@ -72,10 +66,11 @@ const addRecruit = async (req, res) => {
  */
 
 const getAllRecruit = async (req, res) => {
+  console.log("dasd");
   let recruit = await Recruit.findAll({
     attributes: [
       "id",
-      "title",
+      "name",
       "country",
       "region",
       "position",
@@ -99,16 +94,22 @@ const updateRecruit = async (req, res) => {
   //?  company_id must be unique 문제 =>  서버 꺼짐 현상 발생
   //! 조건문으로 해결 => 들어오는 요청과 기존 db에 저장된 요청을 비교
 
-  const test = await Recruit.findAll({ where: {} });
+  const recruitModel = await Recruit.findAll({ where: {} });
+  console.log(recruitModel);
   let arr = [];
-  test.forEach((c) => {
-    arr.push(c.dataValues.id);
+  recruitModel.forEach((value) => {
+    arr.push(value.dataValues.id);
+    console.log(arr);
   });
 
-  let checkRecruitId = arr.includes(req.params.id);
+  //! 파라미터로 들어오는 값은 문자열이므로 parsInt하여 arr의 [1]과 타입을 갖게함
+  let checkRecruitId = arr.includes(parseInt(req.params.id, 10));
   console.log(checkRecruitId);
 
-  // 변경하려는 요청이 회사의 id라면 막는다
+  console.log(req.params.id);
+
+  // recruit/2를 요청했는데 공고 id가 2인게 없다면
+  // 변경하려는 요청이 등록되지 않은 공고라면 막는다
   if (!checkRecruitId) {
     return res.status(400).send(
       `<p>요청한 공고 id는 현재 등록되지 않은 공고의 id입니다.<br>
@@ -155,6 +156,8 @@ const deleteRecruit = async (req, res) => {
 
 //상세페이지 보기
 //TODO: 회사가 올린 채용공고 보기 기능 만들기
+//TODO: 지원한 회사 공고 여러개 가져오기
+
 const detailPage = async (req, res) => {
   let id = req.params.id;
   let recruit = await Recruit.findOne({
@@ -171,7 +174,43 @@ const detailPage = async (req, res) => {
       "company_id",
     ],
   });
+
+  let companiesRecruit = [];
+  const sameCompany = await Recruit.findAll({
+    where: {
+      company_id: recruit.dataValues.company_id,
+    },
+    attributes: ["id", "title"],
+  });
+  console.log(sameCompany);
+
+  sameCompany.filter((value) => {
+    if (id !== value.dataValues.id) {
+      companiesRecruit.push(value.dataValues.id);
+      //console.log("들어와있는 값", companiesRecruit); [2,3,4,5,6]
+      companiesRecruit;
+    }
+  });
+  let newInfo = recruit.dataValues;
+  console.log("info:", newInfo);
+  Object.assign(newInfo, { companiesRecruit });
+
   return res.status(200).send(recruit);
+};
+
+// 공고 검색
+const searchRecruit = async (req, res) => {
+  let searchWord = req.params.keyWord;
+
+  let searchRecruit = await Recruit.findAll({
+    where: {
+      [Op.or]: [
+        { tech: { [Op.like]: `%${searchWord}%` } },
+        { position: { [Op.like]: `%${searchWord}%` } },
+      ],
+    },
+  });
+  res.status(200).send(searchRecruit);
 };
 
 module.exports = {

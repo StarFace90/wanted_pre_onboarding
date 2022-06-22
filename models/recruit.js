@@ -20,6 +20,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       position: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -38,6 +42,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       tech: {
         type: DataTypes.STRING,
+        allowNull: false,
+      },
+      company_id: {
+        field: "company_id",
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
     },

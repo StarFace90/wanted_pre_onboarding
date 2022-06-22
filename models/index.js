@@ -28,10 +28,8 @@ db.applicant = require("./applicant.js")(sequelize, DataTypes);
 
 // ?회사는 포지션 별로 공고를 여러번 등록할 수 있다.
 db.company.hasMany(db.recruit, {
-  foreignKey: {
-    name: "company_id",
-    sourceKey: "id",
-  },
+  foreignKey: "company_id",
+  sourceKey: "id",
 });
 // recruit 모델에 company_id 추가
 db.recruit.belongsTo(db.company, {

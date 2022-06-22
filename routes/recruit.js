@@ -15,7 +15,6 @@ const router = require("express").Router();
 router.post("/addRecruit", recruitController.addRecruit);
 router.get("/allRecruit", recruitController.getAllRecruit);
 router.get("/detailPage/:id", recruitController.detailPage);
-
 router.get("/:id", recruitController.getSingleRecruit);
 router.put("/:id", recruitController.updateRecruit);
 router.delete("/:id", recruitController.deleteRecruit);
