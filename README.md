@@ -52,7 +52,7 @@
 
 ### ERD(Entity Relationship Diagram)
 
-<img width="100%" height="100%" src='/img/etc/erd.png'/> </img>
+<img width="100%" height="100%" src='/img/etc/erd1.png'/> </img>
 
 <br>
 
