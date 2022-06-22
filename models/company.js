@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
   const Company = sequelize.define(
     "company",
     {
-      title: {
+      name: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
@@ -21,11 +21,11 @@ module.exports = (sequelize, DataTypes) => {
       region: {
         type: DataTypes.STRING,
       },
+      location: {
+        type: DataTypes.STRING,
+      },
       description: {
         type: DataTypes.TEXT,
-      },
-      tech: {
-        type: DataTypes.STRING,
       },
     },
     {
@@ -34,6 +34,5 @@ module.exports = (sequelize, DataTypes) => {
       collate: "utf8_general_ci",
     }
   );
-
   return Company;
 };
