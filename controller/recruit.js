@@ -36,6 +36,7 @@ const searchRecruit = async (req, res) => {
 
 // 새로운 공고 추가
 const addRecruit = async (req, res) => {
+  console.log("회사 id", req.body.company_id);
   let recruitInfo = {
     company_id: req.body.company_id,
     title: req.body.title,
@@ -105,20 +106,29 @@ const updateRecruit = async (req, res) => {
   });
 
   let checkRecruitId = arr.includes(req.params.id);
-
-  const preRecruit = await Recruit.findOne({ where: {} });
-  const companyId = preRecruit.dataValues.company_id;
-
-  console.log(req.params); // {id:'?'}
-  console.log(req.body.company_id); //4
-  console.log(companyId); //2
+  console.log(checkRecruitId);
 
   // 변경하려는 요청이 회사의 id라면 막는다
+  if (!checkRecruitId) {
+    return res.status(400).send(
+      `<p>요청한 공고 id는 현재 등록되지 않은 공고의 id입니다.<br>
+		요청한 param을 확인하세요</p>`
+    );
+  }
 
   // FIXME: 회사로 오는 요청만 막을 것
   //    * 올바른 업데이트도 조건에서 막힘 => Recruit에서 company_id만 업데이트 안되도록 조건을 걸 것!
 
-  if (req.body.company_id !== companyId) {
+  let id = req.params.id;
+  console.log(id);
+  const preRecruit = await Recruit.findOne({ where: { company_id: id } });
+  //   console.log("디비에 있는 회사 id", preRecruit.dataValues.company_id); //2
+
+  const saveCompanyId = preRecruit.dataValues.company_id;
+  console.log("파라미터", req.params); // {id:'?'}
+  console.log("변경하려는 회사 id", req.body.company_id); //4
+
+  if (req.body.company_id !== saveCompanyId) {
     return res
       .status(400)
       .send(
@@ -134,12 +144,6 @@ const updateRecruit = async (req, res) => {
     }
   }
   // 파라미터 요청을 없는 공고 id로 했을 경우
-  if (!checkRecruitId) {
-    return res.status(400).send(
-      `<p>요청한 공고 id는 현재 등록되지 않은 공고의 id입니다.<br>
-		요청한 param을 확인하세요</p>`
-    );
-  }
 };
 
 // 공고 삭제
@@ -150,7 +154,7 @@ const deleteRecruit = async (req, res) => {
 };
 
 //상세페이지 보기
-
+//TODO: 회사가 올린 채용공고 보기 기능 만들기
 const detailPage = async (req, res) => {
   let id = req.params.id;
   let recruit = await Recruit.findOne({
@@ -164,9 +168,10 @@ const detailPage = async (req, res) => {
       "reward",
       "tech",
       "description",
+      "company_id",
     ],
   });
-  res.status(200).send(recruit);
+  return res.status(200).send(recruit);
 };
 
 module.exports = {

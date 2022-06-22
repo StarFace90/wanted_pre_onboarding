@@ -27,6 +27,7 @@ db.sequelize = sequelize;
 db.company = require("./company.js")(sequelize, DataTypes);
 db.recruit = require("./recruit.js")(sequelize, DataTypes);
 db.user = require("./user.js")(sequelize, DataTypes);
+db.applicant = require("./applicant.js")(sequelize, DataTypes);
 
 // ?회사는 포지션 별로 공고를 여러번 등록할 수 있다.
 db.company.hasMany(db.recruit, {
@@ -41,10 +42,37 @@ db.recruit.belongsTo(db.company, {
     name: "company_id",
     targetKey: "id",
     onUpdate: "RESTRICT",
-    unique: "company_id",
   },
+});
 
-  //uniqueKey: "company_id",
+// applicant 지원 모델 관계 설정
+//? 지원자는 여러 회사에 지원할 수 있다.
+//? 채용공고는 여러개의 지원 내역을 가질 수 있다. (지원자가 여러명 있을 수 있다)
+
+db.user.hasMany(db.applicant, {
+  foreignKey: "user_id",
+  sourceKey: "id",
+});
+
+db.recruit.hasMany(db.applicant, {
+  foreignKey: "recruit_id",
+  sourceKey: "id",
+});
+
+db.applicant.belongsTo(db.user, {
+  foreignKey: {
+    name: "user_id",
+    targetKey: "id",
+    onDelete: "Cascade",
+  },
+});
+
+db.applicant.belongsTo(db.recruit, {
+  foreignKey: {
+    name: "recruit_id",
+    targetKey: "id",
+    onDelete: "Cascade",
+  },
 });
 
 // db.user.hasMany(db.recruit, {
